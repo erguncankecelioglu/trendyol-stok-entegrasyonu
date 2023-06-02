@@ -1,12 +1,13 @@
 <?php
+if (!defined('ABSPATH')) exit; // Exit if accessed directly
+
 class Trendyol_Integration_Utils
 {
-
     public static function trendyol_error($message)
     {
         global $wpdb;
         $table_name = $wpdb->prefix . 'trendyol_error';
-        $log_message = $message;
+        $log_message = sanitize_text_field($message);
 
         $wpdb->insert(
             $table_name,
@@ -16,10 +17,10 @@ class Trendyol_Integration_Utils
         );
     }
 
-    public static function generate_basic_auth_header()
+    public static function generate_basic_auth_headerfortrendyol()
     {
-        $api_key = get_option('trendyol_api_key');
-        $api_secret = get_option('trendyol_api_secret');
+        $api_key = sanitize_text_field(get_option('trendyol_api_key'));
+        $api_secret = sanitize_text_field(get_option('trendyol_api_secret'));
         $credentials = $api_key . ':' . $api_secret;
         $encoded_credentials = base64_encode($credentials);
         return 'Basic ' . $encoded_credentials;
@@ -32,7 +33,7 @@ function create_trendyol_log_table()
     $table_name = $wpdb->prefix . 'trendyol_error';
 
     $charset_collate = $wpdb->get_charset_collate();
-    date_default_timezone_set('Europe/Istanbul');
+
 
     $sql = "CREATE TABLE IF NOT EXISTS $table_name (
         id bigint(20) NOT NULL AUTO_INCREMENT,
@@ -47,7 +48,7 @@ function create_trendyol_log_table()
 register_activation_hook(__DIR__ . '/trendyol-integration.php', 'create_trendyol_log_table');
 
 
-function custom_cron_schedules($schedules)
+function custom_cron_schedulesfortrendyol($schedules)
 {
 
     $schedules['order_sync_interval1'] = array(
@@ -67,4 +68,4 @@ function custom_cron_schedules($schedules)
 
     return $schedules;
 }
-add_filter('cron_schedules', 'custom_cron_schedules');
+add_filter('cron_schedules', 'custom_cron_schedulesfortrendyol');

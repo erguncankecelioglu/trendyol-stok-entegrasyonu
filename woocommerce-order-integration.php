@@ -1,10 +1,12 @@
 <?php
+if (!defined('ABSPATH')) exit; // Exit if accessed directly
+
 function trendyol_update_stock($order_id)
 {
     $order = wc_get_order($order_id);
     $items = $order->get_items();
     $trendyol_id = get_option('trendyol_id');
-    $auth_header = Trendyol_Integration_Utils::generate_basic_auth_header();
+    $auth_header = Trendyol_Integration_Utils::generate_basic_auth_headerfortrendyol();
 
 
     $api_items = [];

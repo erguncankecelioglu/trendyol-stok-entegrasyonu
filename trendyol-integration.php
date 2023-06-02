@@ -28,9 +28,9 @@ require_once $plugin_dir . '/trendyol-integration-utils.php';
 require_once $plugin_dir . '/trendyol-integration-admin-panel.php';
 require_once $plugin_dir . '/woocommerce-order-integration.php';
 
-date_default_timezone_set('Europe/Istanbul');
-$trendyol_id = get_option('trendyol_id');
 
-if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
+$trendyol_id = sanitize_text_field(get_option('trendyol_id'));
+
+if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins'))) && is_plugin_active('woocommerce/woocommerce.php')) {
     add_action('woocommerce_order_status_changed', 'trendyol_update_stock', 10, 4);
 }

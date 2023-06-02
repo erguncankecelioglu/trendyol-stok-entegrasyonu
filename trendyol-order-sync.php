@@ -1,5 +1,7 @@
 <?php
-function get_start_date_milliseconds()
+if (!defined('ABSPATH')) exit; // Exit if accessed directly
+
+function generate_timefortrendyol()
 {
     $order_sync_interval_minutes = get_option('trendyol_order_sync_interval', 60);
     $interval_with_offset = $order_sync_interval_minutes + 10;
@@ -12,9 +14,9 @@ function get_start_date_milliseconds()
 function trendyol_orders_check()
 {
     $trendyol_id = get_option('trendyol_id');
-    $auth_header = Trendyol_Integration_Utils::generate_basic_auth_header();
+    $auth_header = Trendyol_Integration_Utils::generate_basic_auth_headerfortrendyol();
 
-    $start_date = get_start_date_milliseconds();
+    $start_date = generate_timefortrendyol();
     $url = "https://api.trendyol.com/sapigw/suppliers/{$trendyol_id}/orders?startDate={$start_date}";
     $response = wp_remote_get($url, array(
         'headers' => array(

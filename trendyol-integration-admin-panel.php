@@ -1,5 +1,7 @@
 <?php
-date_default_timezone_set('Europe/Istanbul');
+if (!defined('ABSPATH')) exit; // Exit if accessed directly
+
+
 function trendyol_sync_admin_menu()
 {
     add_submenu_page('woocommerce', 'Trendyol Senkronizasyon Ayarları', 'Trendyol Senkronizasyon', 'manage_options', 'trendyol-sync-settings', 'trendyol_sync_page_callback');
@@ -48,9 +50,9 @@ function trendyol_sync_page_callback()
         update_option('trendyol_api_key', sanitize_text_field($_POST['trendyol_api_key']));
         update_option('trendyol_api_secret', sanitize_text_field($_POST['trendyol_api_secret']));
         add_settings_error('trendyol_sync', 'save_settings', 'Ayarlar kaydedildi.', 'success');
-        update_option('trendyol_order_sync_interval', (int)$_POST['order_sync_interval']);
+        update_option('trendyol_order_sync_interval', (int)sanitize_text_field($_POST['order_sync_interval']));
         wp_clear_scheduled_hook('trendyol_orders_check_event');
-        $order_sync_interval = get_option('trendyol_order_sync_interval');
+        $order_sync_interval = sanitize_text_field(get_option('trendyol_order_sync_interval'));
         $order_sync_interval_name = $order_sync_interval == 60 ? 'hourly' : 'daily';
         wp_schedule_event(time(), $order_sync_interval_name, 'trendyol_orders_check_event');
     }
@@ -85,12 +87,12 @@ function trendyol_sync_page_callback()
     <div class="wrap">
         <h1>Trendyol Senkronizasyon Ayarları</h1>
         <?php
-        $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'settings';
+        $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'settings';
         ?>
         <h2 class="nav-tab-wrapper">
-            <a href="?page=trendyol-sync-settings&tab=settings" class="nav-tab <?php echo $active_tab == 'settings' ? 'nav-tab-active' : ''; ?>">Ayarlar</a>
-            <a href="?page=trendyol-sync-settings&tab=logs" class="nav-tab <?php echo $active_tab == 'logs' ? 'nav-tab-active' : ''; ?>">Son Hatalar</a>
-            <a href="?page=trendyol-sync-settings&tab=premium" class="nav-tab premium-tab <?php echo $active_tab == 'premium' ? 'nav-tab-active' : ''; ?>">Premium</a>
+            <a href="?page=trendyol-sync-settings&tab=settings" class="nav-tab <?php echo esc_attr($active_tab == 'settings' ? 'nav-tab-active' : ''); ?>">Ayarlar</a>
+            <a href="?page=trendyol-sync-settings&tab=logs" class="nav-tab <?php echo esc_attr($active_tab == 'logs' ? 'nav-tab-active' : ''); ?>">Son Hatalar</a>
+            <a href="?page=trendyol-sync-settings&tab=premium" class="nav-tab premium-tab <?php echo esc_attr($active_tab == 'premium' ? 'nav-tab-active' : ''); ?>">Premium</a>
         </h2>
         <?php if ($active_tab == 'premium') { ?>
             <div>
@@ -119,17 +121,17 @@ function trendyol_sync_page_callback()
                         <p>
                             <label for="order_sync_interval">Sipariş kontrolü zaman aralığı (dakika):</label><br>
                             <select id="order_sync_interval" name="order_sync_interval" style="width: 100%; max-width: 300px; padding: 5px;">
-                                <option value="60" <?php echo get_option('trendyol_order_sync_interval') == 60 ? 'selected' : ''; ?>>60</option>
-                                <option value="90" <?php echo get_option('trendyol_order_sync_interval') == 90 ? 'selected' : ''; ?>>90</option>
+                                <option value="60" <?php echo esc_attr(get_option('trendyol_order_sync_interval') == 60 ? 'selected' : ''); ?>>60</option>
+                                <option value="90" <?php echo esc_attr(get_option('trendyol_order_sync_interval') == 90 ? 'selected' : ''); ?>>90</option>
                             </select>
                         </p>
                         <label for="trendyol_api_key">Satıcı Id:</label><br>
-                        <input type="text" id="trendyol_id" name="trendyol_id" value="<?php echo get_option('trendyol_id', ''); ?>" required style="width: 100%; max-width: 300px; padding: 5px;"><br>
+                        <input type="text" id="trendyol_id" name="trendyol_id" value="<?php echo esc_attr(get_option('trendyol_id', '')); ?>" required style="width: 100%; max-width: 300px; padding: 5px;"><br>
                         <label for="trendyol_api_key">API Key:</label><br>
-                        <input type="text" id="trendyol_api_key" name="trendyol_api_key" value="<?php echo get_option('trendyol_api_key', ''); ?>" required style="width: 100%; max-width: 300px; padding: 5px;"><br>
+                        <input type="text" id="trendyol_api_key" name="trendyol_api_key" value="<?php echo esc_attr(get_option('trendyol_api_key', '')); ?>" required style="width: 100%; max-width: 300px; padding: 5px;"><br>
 
                         <label for="trendyol_api_secret">API Secret:</label><br>
-                        <input type="password" id="trendyol_api_secret" name="trendyol_api_secret" value="<?php echo get_option('trendyol_api_secret', ''); ?>" required style="width: 100%; max-width: 300px; padding: 5px;"><br><br>
+                        <input type="password" id="trendyol_api_secret" name="trendyol_api_secret" value="<?php echo esc_attr(get_option('trendyol_api_secret', '')); ?>" required style="width: 100%; max-width: 300px; padding: 5px;"><br><br>
                         <p>
                             <input type="submit" name="trendyol_sync_submit" value="Kaydet" class="button button-primary" style="padding: 10px 20px;">
                         </p>
@@ -152,7 +154,9 @@ function trendyol_sync_page_callback()
                     global $wpdb;
                     $table_name = $wpdb->prefix . 'trendyol_error';
 
-                    $results = $wpdb->get_results("SELECT * FROM $table_name ORDER BY id DESC");
+                    $query = $wpdb->prepare("SELECT * FROM %s ORDER BY id DESC", $table_name);
+                    $results = $wpdb->get_results($query);
+
                     if (isset($_POST['submit_error_feedback'])) {
                         $topic = sanitize_text_field($_POST['topic']);
                         $message_content = sanitize_textarea_field($_POST['message']);
@@ -160,14 +164,14 @@ function trendyol_sync_page_callback()
 
                         $to = 'erguncan06@gmail.com';
                         $subject = "Trendyol Entegrasyon Hata/Geri Bildirim Formu";
-                        $message = "Konu: {$topic} \n\n Gönderen: " . get_option('admin_email') . "\n\n" . $message_content;
+                        $message = "Konu: {$topic} \n\n Gönderen: " . sanitize_email(get_option('admin_email')) . "\n\n" . $message_content;
                         $headers = array('Content-Type: text/plain; charset=UTF-8');
 
 
                         if (wp_mail($to, $subject, $message, $headers)) {
-                            echo '<div class="notice notice-success is-dismissible"><p>Email başarıyla gönderildi.</p></div>';
+                            echo esc_html('<div class="notice notice-success is-dismissible"><p>Email başarıyla gönderildi.</p></div>');
                         } else {
-                            echo '<div class="notice notice-error is-dismissible"><p>Email gönderilemedi. Lütfen tekrar deneyin.</p></div>';
+                            echo esc_html('<div class="notice notice-error is-dismissible"><p>Email gönderilemedi. Lütfen tekrar deneyin.</p></div>');
                         }
                     }
                     ?>
@@ -183,9 +187,9 @@ function trendyol_sync_page_callback()
                                 <tbody>
                                     <?php $row_count = 0; ?>
                                     <?php foreach ($results as $row) : ?>
-                                        <tr style="<?php echo ($row_count % 2 === 0) ? 'background-color: #f2f2f2;' : ''; ?>">
-                                            <td style="padding: 8px; border-bottom: 1px solid #ddd;"><?php echo $row->timestamp; ?></td>
-                                            <td style="padding: 8px; border-bottom: 1px solid #ddd;"><?php echo $row->log_text; ?></td>
+                                        <tr style="<?php echo esc_attr(($row_count % 2 === 0) ? 'background-color: #f2f2f2;' : ''); ?>">
+                                            <td style="padding: 8px; border-bottom: 1px solid #ddd;"><?php echo esc_html($row->timestamp); ?></td>
+                                            <td style="padding: 8px; border-bottom: 1px solid #ddd;"><?php echo esc_html($row->log_text); ?></td>
                                         </tr>
                                         <?php $row_count++; ?>
                                     <?php endforeach; ?>
